@@ -5,16 +5,6 @@ import { StyledVideo } from '../../styled/StyledVideo';
 import { config } from '../../webrtc/config';
 // import { Container } from '../../styled/Container';
 // import Draggable from 'react-draggable';
-// import { Rnd } from 'react-rnd';
-
-// const config = {
-//     iceServers: [
-//         {
-//             urls: ["stun:stun.l.google.com:19302"]
-//         }
-//     ]
-// };
-
 let peerConnection
 // let peerConnection = new RTCPeerConnection(config)
 
@@ -139,8 +129,9 @@ export const Watcher = () => {
                         // disablePictureInPicture
                         ref={ userVideo }
                         autoPlay
+                        muted
                         playsInline
-                        // controls
+                        controls
                     />
                 {/* </Container> */}
             {/* </Draggable> */}

@@ -10,8 +10,6 @@ const videoConstraints = {
     width: window.innerWidth
 };
 
-// let peerConnection = new RTCPeerConnection(config)
-
 export const Broadcast = () => {
 
     const userVideo = useRef();
