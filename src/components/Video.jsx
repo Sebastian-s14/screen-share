@@ -18,6 +18,6 @@ export const Video = (props) => {
         }
     }, [props.peer]);
 
-    return <StyledVideo playsInline autoPlay ref={ ref } controls/>
+    return <StyledVideo playsInline autoPlay ref={ ref } controls muted/>
 
 }

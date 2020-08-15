@@ -15,8 +15,8 @@ export const AppRouter = () => {
                 <Route exact path="/" component={ CreateRoom } />
                 <Route exact path="/room/:roomID" component={ Room } />
                 <Route exact path="/viewer/:roomID" component={ Viewer } />
-                <Route exact path="/broadcast" component={ Broadcast } />
-                <Route exact path="/watcher" component={ Watcher } />
+                <Route exact path="/broadcast/:roomID" component={ Broadcast } />
+                <Route exact path="/watcher/:roomID" component={ Watcher } />
                 <Route exact path="/test" component={ Test } />
             </Switch>
         </Router>

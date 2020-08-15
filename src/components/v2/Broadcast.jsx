@@ -10,10 +10,11 @@ const videoConstraints = {
     width: window.innerWidth
 };
 
-export const Broadcast = () => {
+export const Broadcast = (props) => {
 
     const userVideo = useRef();
     const userStream = useRef()
+    const roomID = props.match.params.roomID;
     // const [peerConnection, setPeerConnection] = useState()
 
     // let peerConnection;
@@ -23,6 +24,9 @@ export const Broadcast = () => {
 
 
     useEffect(() => {
+
+        console.log(roomID)
+
         const peerConnections = {};
         console.log('BROADCAST')
 
@@ -31,16 +35,21 @@ export const Broadcast = () => {
         //     // console.log('connect broadcaster')
         //     socket.emit("broadcaster");
         // })
-
-        socket.emit("broadcaster");
+        // socket.emit("broadcaster");
+        socket.emit("broadcaster", roomID, 1);
+        // socket.emit("add", roomID, 1);
+        // socket.emit("join room", roomID);
 
         socket.on("answer", (id, description) => {
             console.log("answer")
+            console.log(id)
             peerConnections[id].setRemoteDescription(description);
         });
 
-        socket.on("watcher", id => {
+        socket.on("watcher", (id) => {
             console.log("watcher")
+            console.log(id)
+            // console.log(data)
             console.log("New watcher")
             const peerConnection = new RTCPeerConnection(config);
             // setPeerConnection(new RTCPeerConnection(config));
@@ -136,7 +145,8 @@ export const Broadcast = () => {
         // window.stream = stream;
         userStream.current = stream
         userVideo.current.srcObject = stream;
-        socket.emit("broadcaster");
+        // socket.emit("broadcaster");
+        socket.emit("broadcaster", roomID, 1);
     }
 
     function handleError(error) {
@@ -160,6 +170,12 @@ export const Broadcast = () => {
         // socket.emit("StreamingStop", id_access, 'Detener')
     }
 
+    function testEmit() {
+        console.log("emit")
+        // socket.emit('test', "example")
+        socket.emit('Streaming', roomID, 'hello world');
+    }
+
 
     return (
         <>
@@ -169,11 +185,15 @@ export const Broadcast = () => {
             <button onClick={ stopStream }>
                 Detener!!
             </button>
+            <button onClick={ testEmit }>
+                Test room
+            </button>
             <Container>
                 <StyledVideo
                     ref={ userVideo }
                     autoPlay
                     playsInline
+                    muted
                 />
             </Container>
         </>
