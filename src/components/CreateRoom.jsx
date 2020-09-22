@@ -5,7 +5,8 @@ export const CreateRoom = (props) => {
 
     function create() {
         const id = uuid();
-        props.history.push(`/room/${id}`);
+        // props.history.push(`/room/${id}`);
+        props.history.push(`/professor/${id}`);
     }
 
     return <button onClick={ create }>Create room</button>

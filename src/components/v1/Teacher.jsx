@@ -1,16 +1,19 @@
 import React, { useEffect, useRef } from 'react'
 
-import { socket } from "../../socket/socket";
+// import { socket } from "../../socket/socket";
+import { socketTeacher } from "../../socket/socketTeacher";
 import { Container } from '../../styled/Container';
 import { StyledVideo } from '../../styled/StyledVideo';
 import { config } from '../../webrtc/config';
 
-const videoConstraints = {
-    height: window.innerHeight,
-    width: window.innerWidth
-};
+// const videoConstraints = {
+//     height: window.innerHeight,
+//     width: window.innerWidth
+// };
 
-export const Broadcast = (props) => {
+const peerConnections = {};
+
+export const Teacher = (props) => {
 
     const userVideo = useRef();
     const userStream = useRef()
@@ -27,7 +30,7 @@ export const Broadcast = (props) => {
 
         console.log(roomID)
 
-        const peerConnections = {};
+        // const peerConnections = {};
         console.log('BROADCAST')
 
         // socket.on('connect', () => {
@@ -36,17 +39,17 @@ export const Broadcast = (props) => {
         //     socket.emit("broadcaster");
         // })
         // socket.emit("broadcaster");
-        // socket.emit("broadcaster", roomID, 1);
-        // socket.emit("add", roomID, 1);
+        socketTeacher.emit("adduser", roomID, 1);
+        // socketTeacher.emit("broadcaster", roomID, 1);
         // socket.emit("join room", roomID);
 
-        socket.on("answer", (id, description) => {
+        socketTeacher.on("answer", (id, description) => {
             console.log("answer")
-            console.log(id)
+            // console.log(id)
             peerConnections[id].setRemoteDescription(description);
         });
 
-        socket.on("watcher", (id) => {
+        socketTeacher.on("watcher", ( id ) => {
             console.log("watcher")
             console.log(id)
             // console.log(data)
@@ -56,21 +59,17 @@ export const Broadcast = (props) => {
             peerConnections[id] = peerConnection;
 
             let stream = userVideo.current.srcObject;
-            // console.log('STREEEAMMMM')
-            // console.log(userVideo.current.srcObject)
-            // console.log(stream.getTracks()[0])
-            // console.log(stream.getTrad)
 
             if (stream) {
                 stream.getTracks().forEach(track => {
-                    // console.log('In foreach')
-                    // console.log(track)
-                    // console.log(peerConnection)
                     peerConnection.addTrack(track, stream)
                 });
+
                 peerConnection.onicecandidate = event => {
+                    // console.log("ON ICE CANDIDATE")
+                    // console.log(event)
                     if (event.candidate) {
-                        socket.emit("candidate", id, event.candidate);
+                        socketTeacher.emit("candidate", id, event.candidate);
                     }
                 };
 
@@ -78,44 +77,47 @@ export const Broadcast = (props) => {
                     .createOffer()
                     .then(sdp => peerConnection.setLocalDescription(sdp))
                     .then(() => {
-                        socket.emit("offer", id, peerConnection.localDescription);
+                        socketTeacher.emit("offer", id, peerConnection.localDescription);
                     });
             }
-
-
         });
 
-        socket.on("candidate", (id, candidate) => {
+
+        socketTeacher.on("candidate", (id, candidate) => {
             console.log("candidate")
             // console.log(candidate)
             // console.log(id)
             peerConnections[id].addIceCandidate(new RTCIceCandidate(candidate));
         });
 
-        socket.on("test", data => {
+        socketTeacher.on("test", data => {
             console.log('TEST SOCKETS')
             console.log(data)
         })
 
-        socket.on("disconnectPeer", id => {
+        socketTeacher.on("disconnectPeer", id => {
             console.log("disconnectPeer");
-            peerConnections[id].close();
-            delete peerConnections[id];
+            console.log(id)
+            console.log(peerConnections)
+            if (peerConnections) {
+                peerConnections[id].close();
+                delete peerConnections[id];
+            }
         });
 
         // return () => {
 
-        //     socket.on("disconnectPeer", id => {
-        //         peerConnections[id].close();
-        //         delete peerConnections[id];
-        //     });
-        //     // window.onunload = window.onbeforeunload = () => {
-        //     //     socket.close();
-        //     // };
+            // socket.on("disconnectPeer", id => {
+            //     peerConnections[id].close();
+            //     delete peerConnections[id];
+            // });
+            // window.onunload = window.onbeforeunload = () => {
+            //     socketTeacher.close();
+            // };
         //     // socket.close();
 
         // }
-    })
+    }, [roomID])
 
 
     function getStream() {
@@ -133,10 +135,11 @@ export const Broadcast = (props) => {
         }
         const constraints = {
             audio: true,
-            video: videoConstraints
+            // video: videoConstraints
         };
         return navigator.mediaDevices
-            .getDisplayMedia(constraints)
+            // .getDisplayMedia(constraints)
+            .getUserMedia(constraints)
             .then(gotStream)
             .catch(handleError);
     }
@@ -144,9 +147,9 @@ export const Broadcast = (props) => {
     function gotStream(stream) {
         // window.stream = stream;
         userStream.current = stream
-        userVideo.current.srcObject = stream;
+        // userVideo.current.srcObject = stream;
         // socket.emit("broadcaster");
-        socket.emit("broadcaster", roomID, 1);
+        socketTeacher.emit("broadcaster", roomID, 1);
     }
 
     function handleError(error) {
@@ -164,6 +167,7 @@ export const Broadcast = (props) => {
             let tracks = userVideo.current.srcObject.getTracks();
             tracks.forEach(track => track.stop());
             userVideo.current.srcObject = null;
+
         } else {
             console.log('No hay srcObject')
         }
@@ -172,8 +176,8 @@ export const Broadcast = (props) => {
 
     function testEmit() {
         console.log("emit")
-        // socket.emit('test', "example")
-        socket.emit('Streaming', roomID, 'hello world');
+        socketTeacher.emit('test', roomID, 'hello')
+        // socketTeacher.emit('Streaming', roomID, 'hello world');
     }
 
 

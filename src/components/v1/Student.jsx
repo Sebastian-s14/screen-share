@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 
-import { socket } from "../../socket/socket";
+// import { socket } from "../../socket/socket";
+import { socketStudent } from "../../socket/socketStudent";
 import { StyledVideo } from '../../styled/StyledVideo';
 import { config } from '../../webrtc/config';
 // import { Container } from '../../styled/Container';
@@ -8,7 +9,7 @@ import { config } from '../../webrtc/config';
 let peerConnection
 // let peerConnection = new RTCPeerConnection(config)
 
-export const Watcher = (props) => {
+export const Student = (props) => {
 
     // let peerConnection;
 
@@ -18,42 +19,29 @@ export const Watcher = (props) => {
 
     const userVideo = useRef();
 
-    const initWatcher = useRef(null)
-
-    // const peerConnection1 = useRef();
-    // const nodeRef = React.useRef(null);
-    // const peerConnection1 = useRef(new RTCPeerConnection(config));
-
-    // let peerConnection
-    // let peerConnection = new RTCPeerConnection(config);
-    // const peerConnection = peerConnection1.current
-
     useEffect(() => {
         // let peerConnection = peerConnection1
-        initWatcher.current = true
+        // initWatcher.current = true
         console.log('WATCHER')
-        // if (!initWatcher) {
-        // socket.emit("watcher");
-        // }
 
+        socketStudent.emit("adduser", roomID, 1);
 
-        // socket.emit("add", roomID, 2);
-        // socket.emit("watcher", roomID, 2);
+        socketStudent.emit("watcher", roomID, 2);
 
-        socket.on("offer", (id, description) => {
+        socketStudent.on("offer", (id, description) => {
             console.log("offer")
-            peerConnection = new RTCPeerConnection(config);
+            const peerConnection = new RTCPeerConnection(config);
             // setPeerConnection(new RTCPeerConnection(config));
             peerConnection
                 .setRemoteDescription(description)
                 .then(() => peerConnection.createAnswer())
                 .then(sdp => peerConnection.setLocalDescription(sdp))
                 .then(() => {
-                    socket.emit("answer", id, peerConnection.localDescription);
+                    socketStudent.emit("answer", id, peerConnection.localDescription);
                 });
 
             peerConnection.ontrack = event => {
-                // console.log('PEER CONNECTION ONTRACK')
+                console.log('PEER CONNECTION ONTRACK')
                 // console.log(event)
                 userVideo.current.srcObject = event.streams[0];
                 // if (event.streams.length > 0) {
@@ -64,18 +52,21 @@ export const Watcher = (props) => {
             };
 
             peerConnection.onicecandidate = event => {
+                // console.log('ON ICE CANDIDATE')
                 if (event.candidate) {
-                    socket.emit("candidate", id, event.candidate);
+                    socketStudent.emit("candidate", id, event.candidate);
                 }
             };
         });
 
-        socket.on("candidate", (id, candidate) => {
+        socketStudent.on("candidate", (id, candidate) => {
             console.log("candidate")
             // console.log(candidate)
-            peerConnection
-                .addIceCandidate(new RTCIceCandidate(candidate))
-                .catch(e => console.error(e));
+            if (peerConnection) {
+                peerConnection
+                    .addIceCandidate(new RTCIceCandidate(candidate))
+                    .catch(e => console.error(e));
+            }
         });
 
         // socket.on("connect", () => {
@@ -83,41 +74,46 @@ export const Watcher = (props) => {
         //     socket.emit("watcher");
         // });
 
-        socket.on("broadcaster", (data) => {
+        socketStudent.on("broadcaster", () => {
             console.log("broadcaster");
-            console.log(data)
+            // console.log(id)
             // if (initWatcher) {
             // socket.emit("watcher");
-            socket.emit("watcher", roomID, 2 );
+            console.log("emit watcher")
+            socketStudent.emit("watcher", roomID, 2 );
             // }
         });
 
-        socket.on("test", (data) => {
+        socketStudent.on("test", (data) => {
             console.log("test")
             console.log(data)
         });
 
-        socket.on("disconnectPeer", () => {
-            console.log("disconnectPeer")
-            peerConnection.close();
-        });
+        // socketStudent.on("disconnectPeer", () => {
+        //     console.log("disconnectPeer")
+        //     peerConnection.close();
+        // });
 
-        socket.on("Streaming", (data) => {
-            console.log('Streaming')
-            console.log(data)
-        });
+        // socketStudent.on("disconnect", () => {
+        //     socketStudent.emit("disconnectPeer", roomID, 2)
+        // })
+
+        // socketStudent.on("Streaming", (data) => {
+        //     console.log('Streaming')
+        //     console.log(data)
+        // });
 
         // return () => {
         //     console.log('Desmontar componente')
-        //     socket.on("disconnectPeer", () => {
-        //         peerConnection.close();
-        //     });
-
+        //     // socketStudent.on("disconnectPeer", () => {
+        //     //     peerConnection.close();
+        //     // });
         //     window.onunload = window.onbeforeunload = () => {
-        //         socket.close();
+        //         socketStudent.emit("disconnectPeer", roomID, 2)
+        //         socketStudent.close();
         //     };
         // }
-    })
+    }, [ roomID])
 
 
     function testEmit() {
@@ -126,21 +122,18 @@ export const Watcher = (props) => {
         // socket.emit('Streaming', id_access, outputStream);
     }
 
-    // const style = {
-    //     display: "flex",
-    //     alignItems: "center",
-    //     justifyContent: "center",
-    //     border: "solid 1px #ddd",
-    //     background: "#f0f0f0"
-    //   };
-
-
+    function disconnect() {
+        socketStudent.emit("disconnectPeer", roomID, 2)
+    }
 
     return (
         <div className="main-container">
             <h1>I'm a watcher!!</h1>
             <button onClick={ testEmit }>
                 Test
+            </button>
+            <button onClick={ disconnect }>
+                Disconnect
             </button>
             {/* <Draggable
                 nodeRef={ nodeRef }

@@ -9,7 +9,7 @@ import { socket } from "../socket/socket";
 //     width: window.innerWidth
 // };
 
-export const Room = (props) => {
+export const Viewer2 = (props) => {
     const [peers, setPeers] = useState([]);
     // const socketRef = useRef()
     const userVideo = useRef()
@@ -23,17 +23,17 @@ export const Room = (props) => {
         socketRef.current = socket
         // socketRef.current.emit("join room", roomID);
 
-        // socket.on("disconnectPeer", id => {
-        //     console.log("disconnectPeer");
-        //     console.log(id)
-        //     console.log(peersRef.current)
-        //     if (peersRef.current) {
-        //         peersRef.current[id].close();
-        //         delete peersRef.current[id];
-        //         setPeers(peersRef.current)
-        //         // peer.destroy([err])
-        //     }
-        // });
+        socket.on("disconnectPeer", id => {
+            console.log("disconnectPeer");
+            console.log(id)
+            console.log(peersRef.current)
+            if (peersRef.current) {
+                peersRef.current[id].close();
+                delete peersRef.current[id];
+                setPeers(peersRef.current)
+                // peer.destroy([err])
+            }
+        });
 
         socket.on("test", (data) => {
             console.log("test")
@@ -75,10 +75,6 @@ export const Room = (props) => {
                 item.peer.signal(payload.signal);
             });
         })
-
-        return () => {
-            // peer.destroy([err])
-        }
 
     }, [roomID]);
 
@@ -135,10 +131,9 @@ export const Room = (props) => {
 
         if (userVideo.current && userVideo.current.srcObject) {
             let tracks = userVideo.current.srcObject.getTracks();
-            tracks.forEach(track => track.stop());
-            // userVideo.current.srcObject = null;
+                tracks.forEach(track => track.stop());
+                userVideo.current.srcObject = null;
         }
-
     }
 
     const createPeer = (userToSignal, callerID, stream) => {
